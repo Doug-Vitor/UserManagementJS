@@ -13,24 +13,33 @@ class UserController {
             let userData = this.getFormValues();
             userData.photo = '';
             
-            this.getPhoto((content) => {
+            this.getPhoto().then((content) => {
                 userData.photo = content;
                 this.insertToTable(userData);
-            });
+            }, (error) => {
+                alert(error);
+                console.log(error);
+            })
         });
     }
 
-    getPhoto(callback) {
-        let fileReader = new FileReader();
+    getPhoto() {
+        return new Promise((resolve, reject) => {
+            let fileReader = new FileReader();
 
-        let photo = [...this._formEl.elements].filter(item => {
-            return (item.name === 'photo') ? item : false;
-        })
+            let photo = [...this._formEl.elements].filter(item => {
+                return (item.name === 'photo') ? item : false;
+            })
 
-        fileReader.readAsDataURL(photo[0].files[0]);
-        fileReader.onload = () => {
-            callback(fileReader.result)
-        };
+            fileReader.readAsDataURL(photo[0].files[0]);
+            fileReader.onload = () => {
+                resolve(fileReader.result)
+            };
+
+            fileReader.onerror = (error) => {
+                reject(error);
+            }
+        });
     }
 
     getFormValues() {
@@ -44,7 +53,6 @@ class UserController {
     }
 
     insertToTable(userData) {
-        console.log(userData)
         this._tableEl.innerHTML += `
             <tr>
                 <td><img src="${userData.photo}" alt="User Image" class="img-circle img-sm"></td>
