@@ -3,32 +3,51 @@ class UserController {
         this._formEl = document.getElementById(formId);
         this._tableEl = document.getElementById(tableId);
 
-        this.onSubmit();
+        this.onFormSubmit();
     }
 
-    onSubmit() {
+    onFormSubmit() {
         this._formEl.addEventListener('submit', (event) => {
             event.preventDefault();
-            this.addLine(this.getValues());
+
+            let userData = this.getFormValues();
+            userData.photo = '';
+            
+            this.getPhoto((content) => {
+                userData.photo = content;
+                this.insertToTable(userData);
+            });
         });
     }
 
-    getValues() {
+    getPhoto(callback) {
+        let fileReader = new FileReader();
+
+        let photo = [...this._formEl.elements].filter(item => {
+            return (item.name === 'photo') ? item : false;
+        })
+
+        fileReader.readAsDataURL(photo[0].files[0]);
+        fileReader.onload = () => {
+            callback(fileReader.result)
+        };
+    }
+
+    getFormValues() {
         let user = {};
 
-        // CRIA DEPENDÊNCIA COM O ATRIBUTO NAME. RESOLVER ISSO!!
-        this._formEl.querySelectorAll('[name]').forEach((field) => {
+        [...this._formEl.elements].forEach((field) => {
             user[field.name] = field.value;
         });
         
         return new User(user.name, user.gender, user.birth, user.country, user.email, user.password, user.photo, user.admin);
     }
 
-    addLine(userData) {
+    insertToTable(userData) {
         console.log(userData)
         this._tableEl.innerHTML += `
             <tr>
-                <td><img src="dist/img/user1-128x128.jpg" alt="User Image" class="img-circle img-sm"></td>
+                <td><img src="${userData.photo}" alt="User Image" class="img-circle img-sm"></td>
                 <td>${userData.name}</td>
                 <td>${userData.email}</td>
                 <td>${userData.admin}</td>
