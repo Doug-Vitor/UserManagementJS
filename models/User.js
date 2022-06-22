@@ -23,4 +23,17 @@ class User {
 
     get admin() { return this._admin; }
     get register() { return this._register; }
+
+    loadFromJSON(json) {
+        for (let key in json) {
+            switch(key) {
+                case '_register':
+                    this[key] = new Date(json[key]);
+                    break;
+                default:
+                    this[key] = json[key];
+                    break;
+            }
+        }
+    }
 }

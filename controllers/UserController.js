@@ -6,6 +6,7 @@ class UserController {
 
         this.onFormSubmit();
         this.onEdit();
+        this.listInTable();
     }
 
     onEdit() {
@@ -108,8 +109,9 @@ class UserController {
 
             this.getPhoto(this._formEl).then((content) => {
                 userData.photo = content;
+                this.saveInSession(userData);
                 this.insertToTable(userData);
-
+                
                 this._formEl.reset();
                 this.changeButtonState(this._formEl);
             }, (error) => {
@@ -180,8 +182,33 @@ class UserController {
         return isValid;
     }*/
 
+    getUsersInSession() {
+        let users = [];
+        let items = sessionStorage.getItem('users');
+
+        if (items)
+            users = JSON.parse(items);
+
+        return users;
+    }
+
+    saveInSession(userData) {
+        let users = this.getUsersInSession();
+        users.push(userData);
+        sessionStorage.setItem('users', JSON.stringify(users));
+    }
+
+    listInTable() {
+        this.getUsersInSession().forEach(userData => {
+            let user = new User();
+            user.loadFromJSON(userData);
+            this.insertToTable(user);
+        })
+    }
+
     insertToTable(userData) {
         let tr = document.createElement('tr');
+        
         tr.dataset.user = JSON.stringify(userData);
 
         tr.innerHTML = `
