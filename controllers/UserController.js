@@ -21,7 +21,7 @@ class UserController {
                 this.changeButtonState();
             }, (error) => {
                 alert(error);
-                console.log(error);
+                //console.log(error);
             })
         });
     }
@@ -54,14 +54,29 @@ class UserController {
 
     getFormValues() {
         let user = {};
-
+        let isValid = true;
         [...this._formEl.elements].forEach((field) => {
-            user[field.name] = field.value;
+            if (this.validateForm(field)) {
+                user[field.name] = field.value;
+                if (field.name === 'admin') user[field.name] = field.checked;
+            }
 
-            if (field.name === 'admin') user[field.name] = field.checked;
+            isValid = false;
+            return false;
         });
         
-        return new User(user.name, user.gender, user.birth, user.country, user.email, user.password, user.photo, user.admin);
+        return isValid ? new User(user.name, user.gender, user.birth, user.country, user.email, user.password, user.photo, user.admin)
+            : false;
+    }
+
+    validateForm(field) {
+        let isValid = true;
+        if (['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value) {
+            field.parentElement.classList.add('has-error');
+            isValid = false;
+        }
+
+        return isValid;
     }
 
     insertToTable(userData) {
