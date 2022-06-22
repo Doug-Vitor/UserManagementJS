@@ -10,17 +10,25 @@ class UserController {
         this._formEl.addEventListener('submit', (event) => {
             event.preventDefault();
 
+            this.changeButtonState();            
             let userData = this.getFormValues();
-            userData.photo = '';
             
             this.getPhoto().then((content) => {
                 userData.photo = content;
                 this.insertToTable(userData);
+
+                this._formEl.reset();
+                this.changeButtonState();
             }, (error) => {
                 alert(error);
                 console.log(error);
             })
         });
+    }
+
+    changeButtonState() {
+        let button = this._formEl.querySelector('[type=submit]');
+        button.disabled ? false : true;
     }
 
     getPhoto() {
@@ -57,13 +65,14 @@ class UserController {
     }
 
     insertToTable(userData) {
+        this.changeButtonState();
         let tr = document.createElement('tr');
         tr.innerHTML = `
             <td><img src="${userData.photo}" alt="User Image" class="img-circle img-sm"></td>
                 <td>${userData.name}</td>
                 <td>${userData.email}</td>
                 <td>${userData.admin ? 'Sim' : 'Não'}</td>
-                <td>${userData.birth}</td>
+                <td>${userData.register}</td>
             <td>
                 <button type="button" class="btn btn-primary btn-xs btn-flat">Editar</button>
                 <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
