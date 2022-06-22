@@ -24,28 +24,18 @@ class UserController {
             let oldUser = JSON.parse(tr.dataset.user);
             let result = Object.assign({}, oldUser, userData);
             
-            this.showCreateForm();
             this.getPhoto(this._updateFormEl).then((content) => {
                 if (!userData.photo) result._photo = oldUser._photo;
                 else result._photo = content;
 
-                tr.dataset.user = JSON.stringify(result);
-                tr.innerHTML = `
-                    <td><img src="${result._photo}" alt="User Image" class="img-circle img-sm"></td>
-                        <td>${result._name}</td>
-                        <td>${result._email}</td>
-                        <td>${result._admin ? 'Sim' : 'Não'}</td>
-                        <td>${Utils.dateFormat(result._register)}</td>
-                    <td>
-                        <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
-                        <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
-                    </td>
-                `;
+                let user = new User();
+                user.loadFromJSON(result);
+                this.getTrHtml(user, tr)
 
-                this.addEventTr(tr);
                 this.updateUsersCount();
                 this._updateFormEl.reset();
                 this.changeButtonState(this._updateFormEl);
+                this.showCreateForm();
             }, (error) => {
                 alert(error);
             })
@@ -109,7 +99,7 @@ class UserController {
 
             this.getPhoto(this._formEl).then((content) => {
                 userData.photo = content;
-                this.saveInSession(userData);
+                this.saveInStorage(userData);
                 this.insertToTable(userData);
                 
                 this._formEl.reset();
@@ -182,9 +172,9 @@ class UserController {
         return isValid;
     }*/
 
-    getUsersInSession() {
+    getUsersInStorage() {
         let users = [];
-        let items = sessionStorage.getItem('users');
+        let items = localStorage.getItem('users');
 
         if (items)
             users = JSON.parse(items);
@@ -192,14 +182,14 @@ class UserController {
         return users;
     }
 
-    saveInSession(userData) {
-        let users = this.getUsersInSession();
+    saveInStorage(userData) {
+        let users = this.getUsersInStorage();
         users.push(userData);
-        sessionStorage.setItem('users', JSON.stringify(users));
+        localStorage.setItem('users', JSON.stringify(users));
     }
 
     listInTable() {
-        this.getUsersInSession().forEach(userData => {
+        this.getUsersInStorage().forEach(userData => {
             let user = new User();
             user.loadFromJSON(userData);
             this.insertToTable(user);
@@ -207,24 +197,7 @@ class UserController {
     }
 
     insertToTable(userData) {
-        let tr = document.createElement('tr');
-        
-        tr.dataset.user = JSON.stringify(userData);
-
-        tr.innerHTML = `
-            <td><img src="${userData.photo}" alt="User Image" class="img-circle img-sm"></td>
-                <td>${userData.name}</td>
-                <td>${userData.email}</td>
-                <td>${userData.admin ? 'Sim' : 'Não'}</td>
-                <td>${Utils.dateFormat(userData.register)}</td>
-            <td>
-                <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
-                <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
-            </td>
-        `
-        
-        this.addEventTr(tr);
-
+        let tr = this.getTrHtml(userData);
         this._tableEl.appendChild(tr);
         this.updateUsersCount();
     }
@@ -241,5 +214,26 @@ class UserController {
 
         document.querySelector('#total-users').innerHTML = totalUsers;
         document.querySelector('#total-admins').innerHTML = totalAdmins;
+    }
+
+    getTrHtml(userData, tr = null) {
+        if (tr === null) tr = document.createElement('tr');
+        
+        tr.dataset.user = JSON.stringify(userData);
+        tr.innerHTML =
+        `
+            <td><img src="${userData.photo}" alt="User Image" class="img-circle img-sm"></td>
+                <td>${userData.name}</td>
+                <td>${userData.email}</td>
+                <td>${userData.admin ? 'Sim' : 'Não'}</td>
+                <td>${Utils.dateFormat(userData.register)}</td>
+            <td>
+                <button type="button" class="btn btn-primary btn-edit btn-xs btn-flat">Editar</button>
+                <button type="button" class="btn btn-danger btn-delete btn-xs btn-flat">Excluir</button>
+            </td>
+        `
+
+        this.addEventTr(tr);
+        return tr;
     }
 }
