@@ -13,6 +13,8 @@ class UserController {
             this.changeButtonState();            
             let userData = this.getFormValues();
             
+            if (!userData) return false;
+
             this.getPhoto().then((content) => {
                 userData.photo = content;
                 this.insertToTable(userData);
@@ -56,20 +58,19 @@ class UserController {
         let user = {};
         let isValid = true;
         [...this._formEl.elements].forEach((field) => {
-            if (this.validateForm(field)) {
-                user[field.name] = field.value;
-                if (field.name === 'admin') user[field.name] = field.checked;
+            if (['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value) {
+                field.parentElement.classList.add('has-error');
+                isValid = false;
             }
-
-            isValid = false;
-            return false;
+            user[field.name] = field.value;
+            if (field.name == 'admin') user[field.name] = field.checked;
         });
         
         return isValid ? new User(user.name, user.gender, user.birth, user.country, user.email, user.password, user.photo, user.admin)
             : false;
     }
 
-    validateForm(field) {
+    /*validateForm(field) {
         let isValid = true;
         if (['name', 'email', 'password'].indexOf(field.name) > -1 && !field.value) {
             field.parentElement.classList.add('has-error');
@@ -77,10 +78,12 @@ class UserController {
         }
 
         return isValid;
-    }
+    }*/
 
     insertToTable(userData) {
         let tr = document.createElement('tr');
+        tr.dataset.user = JSON.stringify(userData);
+
         tr.innerHTML = `
             <td><img src="${userData.photo}" alt="User Image" class="img-circle img-sm"></td>
                 <td>${userData.name}</td>
@@ -94,5 +97,21 @@ class UserController {
         `
 
         this._tableEl.appendChild(tr);
+        this.updateUsersCount();
+    }
+
+    updateUsersCount() {
+        let totalUsers = 0;
+        let totalAdmins = 0;
+
+        [...this._tableEl.children].forEach(tr => {
+            totalUsers++;
+            console.log(tr.dataset.user);
+            let user = JSON.parse(tr.dataset.user);
+            if (user._admin) totalAdmins++;
+        });
+
+        document.querySelector('#total-users').innerHTML = totalUsers;
+        document.querySelector('#total-admins').innerHTML = totalAdmins;
     }
 }
