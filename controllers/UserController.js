@@ -30,6 +30,8 @@ class UserController {
 
                 let user = new User();
                 user.loadFromJSON(result);
+                user.saveInStorage();
+
                 this.getTrHtml(user, tr)
 
                 this.updateUsersCount();
@@ -99,7 +101,7 @@ class UserController {
 
             this.getPhoto(this._formEl).then((content) => {
                 userData.photo = content;
-                this.saveInStorage(userData);
+                userData.saveInStorage();
                 this.insertToTable(userData);
                 
                 this._formEl.reset();
@@ -172,24 +174,8 @@ class UserController {
         return isValid;
     }*/
 
-    getUsersInStorage() {
-        let users = [];
-        let items = localStorage.getItem('users');
-
-        if (items)
-            users = JSON.parse(items);
-
-        return users;
-    }
-
-    saveInStorage(userData) {
-        let users = this.getUsersInStorage();
-        users.push(userData);
-        localStorage.setItem('users', JSON.stringify(users));
-    }
-
     listInTable() {
-        this.getUsersInStorage().forEach(userData => {
+        User.getUsersInStorage().forEach(userData => {
             let user = new User();
             user.loadFromJSON(userData);
             this.insertToTable(user);
