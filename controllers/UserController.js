@@ -47,6 +47,10 @@ class UserController {
     addEventTr(tr) {
         tr.querySelector('.btn-delete').addEventListener('click', () => {
             if (confirm('Você tem certeza?')) {
+                let user = new User();
+                user.loadFromJSON(JSON.parse(tr.dataset.user));
+                user.removeFromStorage();
+
                 tr.remove();
                 this.updateUsersCount();
             }
